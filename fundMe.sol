@@ -4,6 +4,9 @@ pragma solidity ^0.8.0;
 
 import "./PriceConverter.sol";
 
+error NotOwner();
+
+
 // a contract for accepting payments
 contract FundMe {
         using PriceConverter for uint256;
@@ -13,12 +16,14 @@ contract FundMe {
     // mapping addresses to funds sent from them
     mapping(address => uint256) public addressToAmount;
 
-    uint256 public minimumUsd = 50;
+// the constant keyword helps with gas optimisation since it gets encoded into the bytecode of the contract and not its storage
+    uint256 public constant MINIMUM_USD = 50;
 
-    address public owner;
+// the immutable keyword is the similar to the constant
+    address public immutable i_owner;
 
     constructor(){
-        owner = msg.sender;
+        i_owner = msg.sender;
     }
 
     // payable = contract can accept eth
@@ -53,7 +58,10 @@ contract FundMe {
    
 // creates a modifier that can be attached to any function so it runs the modifier code before the function   
    modifier onlyOwner{
-        require (owner == msg.sender, "Sender is not owner!");
+    // the  new way of using a require statement from version ^0.8.4
+        if(msg.sender != i_owner){
+            revert NotOwner();
+        }
         _; //the _ is a placeholder for any function that has this modifier
    }
 }
